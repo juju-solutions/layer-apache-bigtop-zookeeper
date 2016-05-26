@@ -1,4 +1,4 @@
-name: layer-apache-bigtop-zookeeper
+name: apache-bigtop-zookeeper
 maintainer: Juju Big Data <bigdata@lists.ubuntu.com>
 summary: High-performance coordination service for distributed applications
 description: |
