@@ -16,17 +16,12 @@ def install_zookeeper():
     puppet will start the service, as a side effect.
 
     '''
-    zk = Zookeeper()
-    zk.install()
-    zk.open_ports()
+    zookeeper = Zookeeper()
+    zookeeper.install()
+    zookeeper.open_ports()
     set_state('zookeeper.installed')
     set_state('zookeeper.started')
     hookenv.status_set('active', 'Ready')
-
-@when('zookeeper.started', 'config.changed.rest')
-def rest_config():
-    """TODO"""
-    pass
 
 @when('zookeeper.started', 'zkpeer.joined')
 def quorum_add(zkpeer):
@@ -36,9 +31,8 @@ def quorum_add(zkpeer):
     '.joined' state so we don't fall in here again (until another peer joins).
     """
     nodes = zkpeer.get_nodes()  # single node since we dismiss .joined below
-    zk = Zookeeper()
-    zk.increase_quorum(nodes)
-    #restart_zookeeper_if_config_changed()  # Not necessary due to puppet
+    zookeeper = Zookeeper()
+    zookeeper.increase_quorum(nodes)
     zkpeer.dismiss_joined()
 
 @when('zookeeper.started', 'zkpeer.departed')
@@ -49,12 +43,6 @@ def quorum_remove(zkpeer):
     '.departed' state so we don't fall in here again (until another peer leaves).
     """
     nodes = zkpeer.get_nodes()  # single node since we dismiss .departed below
-    zk = Zookeeper()
-    zk.decrease_quorum(nodes)
-    #restart_zookeeper_if_config_changed()  # puppet handles now
+    zookeeper = Zookeeper()
+    zookeeper.decrease_quorum(nodes)
     zkpeer.dismiss_departed()
-
-@when('zookeeper.started', 'zkclient.joined')
-def serve_client(client):
-    """TODO"""
-    pass

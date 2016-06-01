@@ -9,10 +9,13 @@ from jujubigdata.utils import DistConfig
 from charmhelpers.core.hookenv import open_port, close_port
 
 
-def getid(unit_id):
-    """Utility function to return the unit number."""
-    return unit_id.split("/")[1]
+def format_node(node_id, node_ip):
+    '''
+    Transform the node spec that we get from a client into a string
+    that can be written out to a config.
 
+    '''
+    return "server.{}={}:2888:3888".format(node_id.split("/")[1], node_ip)
 
 class Zookeeper(object):
     '''
@@ -25,6 +28,14 @@ class Zookeeper(object):
             data=layer.options('apache-bigtop-base'))
 
         self._peers = []
+        self._roles = ['zookeeper-server', 'zookeeper-client']
+        self._hosts = {}
+        self._override = {
+            "hadoop_zookeeper::server::ensemble": self.peers,
+            # @HACK: need to remove override, or override with
+            # something correct.
+            "bigtop::hadoop_head_node": "foo.qux:2888:3888"
+        }
 
     @property
     def dist_config(self):
@@ -35,49 +46,15 @@ class Zookeeper(object):
         return self._dist_config
 
     @property
-    def _roles(self):
-        '''
-        List of specific services that we want to deploy. Will be passed
-        to Bigtop.
-
-        '''
-        return ['zookeeper-server', 'zookeeper-client']
-
-    @property
-    def _hosts(self):
-        '''
-        Dict of hosts to pass to Bigtop.
-
-        # TODO: do we actually need to populate this? If so, we need
-        to popualte it.
-
-        '''
-        hosts = {}
-        return hosts
-
-    @property
     def peers(self):
         '''
-        List of Zookeeper nodes that we theoretically have running.
+        List of Zookeeper nodes that we have running.
 
         # TODO: probably safer to read these out of the config each
         # time, so that we aren't keeping extra state around.
 
         '''
         return self._peers
-
-    @property
-    def _override(self):
-        '''
-        Dict of parameters used to override the puppet config.
-
-        '''
-        return {
-            "hadoop_zookeeper::server::ensemble": self.peers,
-            # @HACK: need to remove override, or override with
-            # something correct.
-            "bigtop::hadoop_head_node": "foo.qux:2888:3888"
-        }
 
     def install(self):
         '''
@@ -127,11 +104,9 @@ class Zookeeper(object):
         Will trigger a config update and restart.
 
         '''
-        for unit_id, unit_ip in node_list:
-            entry = "server.{}={}:2888:3888".format(getid(unit_id), unit_ip)
-            if entry not in self._peers:
-                # TODO: Flatten nested loop.
-                self._peers.append(entry)
+        nodes = [format_node(*node) for node in node_list]
+        self._peers = list(set(nodes + self._peers))  # Combine and dedupe
+
         self.install()   # update config and trigger puppet
 
     def decrease_quorum(self, node_list):
@@ -141,9 +116,7 @@ class Zookeeper(object):
         Will trigger a config update and restart.
 
         '''
-        for unit_id, unit_ip in node_list:
-            entry = "server.{}={}:2888:3888".format(getid(unit_id), unit_ip)
-            # TODO: flatten these nested loops
-            self._peers = [peer for peer in self._peers if peer != entry]
+        nodes = [format_node(*node) for node in node_list]
+        self._peers = [peer for peer in self._peers if peer not in nodes]
 
         self.install()  # update config and trigger puppet
