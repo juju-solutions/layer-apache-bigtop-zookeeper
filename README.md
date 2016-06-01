@@ -31,9 +31,12 @@ Test if the Zookeeper service is running by using the `zkServer.sh` script:
 
     juju run --service=apache-bigtop-zookeeper '/usr/lib/zookeeper/bin/zkServer.sh status'
 
-TODO: this isn't working in juju 2 beta7 (though the command works if
-you do juju ssh <unit> and run the command manually). Need to figure
-out why and possibly update docs.
+If this command hangs, you can ssh in and run the command on the machine:
+
+    juju ssh apache-bigtop-zookeeper/0
+    /usr/lib/zookeeper/bin/zkServer.sh status
+
+TODO: figure out reason for hang.
 
 A successful deployment will report the service mode as either `standalone`
 (if only one Zookeeper unit has been deployed) or `leader` / `follower` (if

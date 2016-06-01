@@ -46,3 +46,6 @@ def quorum_remove(zkpeer):
     zookeeper = Zookeeper()
     zookeeper.decrease_quorum(nodes)
     zkpeer.dismiss_departed()
+
+# TODO: add zookeeper REST
+# TODO: after rest, add client functions from old charm
