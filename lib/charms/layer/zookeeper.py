@@ -62,10 +62,15 @@ class Zookeeper(object):
     @property
     def _override(self, peers=None):
         override = {
-            "bigtop::hadoop_head_node": unit_get('private-address'),
+            "hadoop_zookeeper::server::ensemble": [
+                format_node(None, unit_get('private-address'))],
         }
         if self._peers:
-            override["hadoop_zookeeper::server::ensemble"] = sorted(self._peers)
+            # Put together a peer list. This unit should always be
+            # first, but other units should always be sorted
+            # consistently.
+            self._peers = self._peers[:1] + sorted(self._peers[1:])
+            override["hadoop_zookeeper::server::ensemble"] = self._peers
 
         return override
 
