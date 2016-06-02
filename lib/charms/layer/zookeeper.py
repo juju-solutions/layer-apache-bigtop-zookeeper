@@ -65,7 +65,7 @@ class Zookeeper(object):
             "bigtop::hadoop_head_node": unit_get('private-address'),
         }
         if self._peers:
-            override["hadoop_zookeeper::server::ensemble"] = self._peers
+            override["hadoop_zookeeper::server::ensemble"] = sorted(self._peers)
 
         return override
 
