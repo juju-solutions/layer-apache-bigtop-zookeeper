@@ -1,5 +1,4 @@
 includes:
-  - 'layer:basic'
   - 'layer:apache-bigtop-base'
   - 'interface:zookeeper-quorum'
   - 'interface:zookeeper'

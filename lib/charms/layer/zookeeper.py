@@ -9,6 +9,7 @@ from jujubigdata.utils import DistConfig
 from charmhelpers.core.hookenv import (open_port, close_port, log,
                                        unit_private_ip, local_unit)
 
+
 def format_node(unit, node_ip):
     '''
     Given a juju unit name and an ip address, return a tuple
@@ -17,6 +18,7 @@ def format_node(unit, node_ip):
 
     '''
     return (unit.split("/")[1], "{ip}:2888:3888".format(ip=node_ip))
+
 
 class Zookeeper(object):
     '''
@@ -47,8 +49,9 @@ class Zookeeper(object):
         careful to preserve the order of the list thereafter.
 
         '''
-        self._peers = []  # Reset -- the state in this class is
-                          # secondary to the state in the real world.
+        # Reset -- the state in this class is secondary to the state
+        # in the real world.
+        self._peers = []
 
         # TODO: Instead of getting the list of peers from the config,
         # just inspect our peers via the charm tools.
@@ -139,7 +142,7 @@ class Zookeeper(object):
         log("Increasing quorum with node_list: {}".format(node_list))
         nodes = [format_node(*node) for node in node_list]
         for node in nodes:
-            if not node in self._peers:
+            if node not in self._peers:
                 self._peers.append(node)
 
         self.install()   # update config and trigger puppet
